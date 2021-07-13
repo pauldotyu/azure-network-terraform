@@ -22,11 +22,14 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: 'az container start -n acicontoso -g rg-devops'
-- stage:
+- stage: terraform_plan
   pool:
     name: Contoso
+    demands:
+      - agent.name -equals acicontoso
+  dependsOn: start_aci
   jobs:
-  - job: stop_aci
+  - job: terraform_plan
     steps:
     - script: |
         export ARM_CLIENT_ID=$(client-id) 
@@ -41,6 +44,7 @@ stages:
 - stage: stop_aci
   pool:
     vmImage: ubuntu-latest
+  dependsOn: terraform_plan
   jobs:
   - job: stop_aci
     steps:
