@@ -6,14 +6,47 @@
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+- group: kvdevops1
 
-steps:
-
-- task: AzureCLI@2
-  inputs:
-    azureSubscription: 'terraform'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: 'az container start -n acicontoso -g rg-devops'
+stages:
+- stage: start_aci
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+  - job: start_aci
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'terraform'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az container start -n acicontoso -g rg-devops'
+- stage:
+  pool:
+    name: Contoso
+  jobs:
+  - job: stop_aci
+    steps:
+    - script: |
+        export ARM_CLIENT_ID=$(client-id) 
+        export ARM_CLIENT_SECRET=$(client-secret)
+        export ARM_SUBSCRIPTION_ID=$(main-subscription-id)
+        export ARM_TENANT_ID=$(tenant-id)
+        terraform init \
+          -backend-config="resource_group_name=rg-devops" \
+          -backend-config="storage_account_name=satfstate98722" \
+          -backend-config="container_name=cloudops-network-tfstate" \
+          -backend-config="key=terraform.tfstate"
+- stage: stop_aci
+  pool:
+    vmImage: ubuntu-latest
+  jobs:
+  - job: stop_aci
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'terraform'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az container stop -n acicontoso -g rg-devops'
