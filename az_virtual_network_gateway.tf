@@ -26,7 +26,7 @@ resource "azurerm_virtual_network_gateway" "network" {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = azurerm_public_ip.vng.id
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = element(azurerm_virtual_network.vn.subnet.*.id, index(azurerm_virtual_network.vn.subnet.*.name, "GatewaySubnet"))
+    subnet_id                     = element(azurerm_virtual_network.network.subnet.*.id, index(azurerm_virtual_network.network.subnet.*.name, "GatewaySubnet"))
   }
 
   depends_on = [

@@ -34,7 +34,7 @@ stages:
       - agent.name -equals acicontoso
   jobs:
   - job: terraform_plan
-    displayName: Terraform init and plan
+    displayName: Terraform Plan
     steps:
     - script: |
         export ARM_CLIENT_ID=$(client-id) 
@@ -47,6 +47,7 @@ stages:
           -backend-config="container_name=cloudops-network-tfstate" \
           -backend-config="key=terraform.tfstate"
         terraform plan -var="digicert_ssl_validation_key=$(digicert-ssl-validation-key)" -var="vpn_preshared_key=$(vpn-preshared-key)" -out=$(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
+      displayName: Terraform init and plan
     - task: PublishPipelineArtifact@1
       displayName: Publish $(Build.BuildId).tfplan
       inputs:

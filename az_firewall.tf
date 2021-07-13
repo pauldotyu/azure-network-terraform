@@ -272,13 +272,13 @@ resource "azurerm_firewall" "network" {
   ip_configuration {
     name                 = "AzureFirewallIpConfiguration0"
     public_ip_address_id = azurerm_public_ip.fw.id
-    subnet_id            = element(azurerm_virtual_network.vn.subnet.*.id, index(azurerm_virtual_network.vn.subnet.*.name, "AzureFirewallSubnet"))
+    subnet_id            = element(azurerm_virtual_network.network.subnet.*.id, index(azurerm_virtual_network.network.subnet.*.name, "AzureFirewallSubnet"))
   }
 
   # management_ip_configuration {
   #   name                 = "mgmtipconfig1"
   #   public_ip_address_id = azurerm_public_ip.fw_mgmt.id
-  #   subnet_id            = element(azurerm_virtual_network.vn.subnet.*.id, index(azurerm_virtual_network.vn.subnet.*.name, "AzureFirewallManagementSubnet"))
+  #   subnet_id            = element(azurerm_virtual_network.network.subnet.*.id, index(azurerm_virtual_network.network.subnet.*.name, "AzureFirewallManagementSubnet"))
   # }
 
   depends_on = [

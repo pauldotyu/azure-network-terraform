@@ -19,7 +19,7 @@ resource "azurerm_bastion_host" "network" {
 
   ip_configuration {
     name                 = "IpConf"
-    subnet_id            = element(azurerm_virtual_network.vn.subnet.*.id, index(azurerm_virtual_network.vn.subnet.*.name, "AzureBastionSubnet"))
+    subnet_id            = element(azurerm_virtual_network.network.subnet.*.id, index(azurerm_virtual_network.network.subnet.*.name, "AzureBastionSubnet"))
     public_ip_address_id = azurerm_public_ip.bh.id
   }
 }
