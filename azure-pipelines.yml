@@ -24,7 +24,7 @@ stages:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container start -n $(aciName) -g $(rgName)'
+        inlineScript: 'az container start -n $(ACINAME) -g $(RGNAME)'
 - stage: terraform_plan
   displayName: Terraform Plan
   dependsOn: start_aci
@@ -140,4 +140,4 @@ stages:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container stop -n $(aciName) -g $(rgName)'
+        inlineScript: 'az container stop -n $(ACINAME) -g $(RGNAME)'
