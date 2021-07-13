@@ -127,6 +127,7 @@ stages:
   dependsOn:
   - terraform_apply
   - terraform_destroy
+  condition: or(succeeded('terraform_apply'), succeeded('terraform_destroy'))
   pool:
     vmImage: ubuntu-latest
   jobs:
