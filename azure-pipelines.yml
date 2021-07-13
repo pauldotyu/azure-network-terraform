@@ -28,6 +28,7 @@ stages:
 - stage: terraform_plan
   displayName: Terraform Plan
   dependsOn: start_aci
+  condition: eq(variables.destroy, false)
   pool:
     name: Contoso
     demands:
@@ -91,14 +92,43 @@ stages:
           -backend-config="key=terraform.tfstate"
         terraform apply --auto-approve $(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
       displayName: Terraform init and apply
+- stage: terraform_destroy
+  displayName: Terraform Destroy
+  dependsOn: start_aci
+  condition: eq(variables.destroy, true)
+  jobs: 
+  - job: manual_validation
+    displayName: Approval Gate
+    pool: Server
+    steps:
+    - task: ManualValidation@0
+      inputs:
+        notifyUsers: $(notifyUsers)
+        instructions: 'Are you sure you want to destroy everything?'
+  - job: terraform_destroy
+    displayName: terraform destroy
+    dependsOn: manual_validation
+    steps: 
+    - script: |
+        export ARM_CLIENT_ID=$(client-id) 
+        export ARM_CLIENT_SECRET=$(client-secret)
+        export ARM_SUBSCRIPTION_ID=$(main-subscription-id)
+        export ARM_TENANT_ID=$(tenant-id)
+        terraform init \
+          -backend-config="resource_group_name=rg-devops" \
+          -backend-config="storage_account_name=satfstate98722" \
+          -backend-config="container_name=cloudops-network-tfstate" \
+          -backend-config="key=terraform.tfstate"
+        terraform destroy -var="digicert_ssl_validation_key=$(digicert-ssl-validation-key)" -var="vpn_preshared_key=$(vpn-preshared-key)" --auto-approve
+      displayName: Terraform init and destroy
+      name: terraform_destroy
 - stage: stop_aci
   displayName: Build Cleanup
-  dependsOn: terraform_apply
   pool:
     vmImage: ubuntu-latest
   jobs:
   - job: stop_aci
-    displayName: Start build agent
+    displayName: Stop build agent
     steps:
     - task: AzureCLI@2
       displayName: Stop Azure Container Instance
