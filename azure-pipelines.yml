@@ -16,4 +16,4 @@ steps:
     azureSubscription: 'terraform'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
-    inlineScript: 'az container start -n $(variables.aci-name)-g $(variables.rg-name)'
+    inlineScript: 'az container start -n acicontoso -g rg-devops'
