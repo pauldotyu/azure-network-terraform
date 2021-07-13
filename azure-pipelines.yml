@@ -11,25 +11,30 @@ variables:
 
 stages:
 - stage: start_aci
+  displayName: Build Prep
   pool:
     vmImage: ubuntu-latest
   jobs:
   - job: start_aci
+    displayName: Start build agent
     steps:
     - task: AzureCLI@2
+      displayName: Start Azure Container Instance
       inputs:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container start -n acicontoso -g rg-devops'
+        inlineScript: 'az container start -n $(aciName) -g $(rgName)'
 - stage: terraform_plan
+  displayName: Terraform Plan
+  dependsOn: start_aci
   pool:
     name: Contoso
     demands:
       - agent.name -equals acicontoso
-  dependsOn: start_aci
   jobs:
   - job: terraform_plan
+    displayName: Terraform init and plan
     steps:
     - script: |
         export ARM_CLIENT_ID=$(client-id) 
@@ -41,16 +46,66 @@ stages:
           -backend-config="storage_account_name=satfstate98722" \
           -backend-config="container_name=cloudops-network-tfstate" \
           -backend-config="key=terraform.tfstate"
+        terraform plan -var="digicert_ssl_validation_key=$(digicert-ssl-validation-key)" -var="vpn_preshared_key=$(vpn-preshared-key)" -out=$(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
+    - task: PublishPipelineArtifact@1
+      displayName: Save plan output as artifact
+      inputs:
+        targetPath: $(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
+        artifactName: $(Build.BuildId).tfplan
+- stage: terraform_apply
+  displayName: Terraform Apply
+  dependsOn: terraform_plan
+  pool:
+    name: Contoso
+    demands:
+      - agent.name -equals acicontoso
+  jobs:
+  - job: manual_validation
+    displayName: Approval Gate
+    pool: Server
+    steps:
+    - task: ManualValidation@0
+      inputs:
+        notifyUsers: $(notifyUsers)
+        instructions: 'Have you looked at the plan output?'
+  - job: terraform_apply
+    displayName: Terraform Apply
+    dependsOn: manual_validation
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download *.tfplan artifact
+      inputs:
+        artifactName: $(Build.BuildId).tfplan
+        patterns: '**/$(Build.BuildId).tfplan'
+        path: $(System.DefaultWorkingDirectory)
+  - job: terraform_apply
+    displayName: Terraform Apply
+    steps:
+    - script: |
+        export ARM_CLIENT_ID=$(client-id) 
+        export ARM_CLIENT_SECRET=$(client-secret)
+        export ARM_SUBSCRIPTION_ID=$(main-subscription-id)
+        export ARM_TENANT_ID=$(tenant-id)
+        terraform init \
+          -backend-config="resource_group_name=rg-devops" \
+          -backend-config="storage_account_name=satfstate98722" \
+          -backend-config="container_name=cloudops-network-tfstate" \
+          -backend-config="key=terraform.tfstate"
+        terraform apply --auto-approve $(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
+      displayName: Terraform init and apply
 - stage: stop_aci
+  displayName: Build Cleanup
+  dependsOn: terraform_plan
   pool:
     vmImage: ubuntu-latest
-  dependsOn: terraform_plan
   jobs:
   - job: stop_aci
+    displayName: Start build agent
     steps:
     - task: AzureCLI@2
+      displayName: Stop Azure Container Instance
       inputs:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container stop -n acicontoso -g rg-devops'
+        inlineScript: 'az container stop -n $(aciName) -g $(rgName)'
