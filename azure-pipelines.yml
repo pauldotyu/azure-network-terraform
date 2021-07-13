@@ -48,7 +48,7 @@ stages:
           -backend-config="key=terraform.tfstate"
         terraform plan -var="digicert_ssl_validation_key=$(digicert-ssl-validation-key)" -var="vpn_preshared_key=$(vpn-preshared-key)" -out=$(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
     - task: PublishPipelineArtifact@1
-      displayName: Save plan output as artifact
+      displayName: Publish $(Build.BuildId).tfplan
       inputs:
         targetPath: $(System.DefaultWorkingDirectory)/$(Build.BuildId).tfplan
         artifactName: $(Build.BuildId).tfplan
@@ -73,14 +73,11 @@ stages:
     dependsOn: manual_validation
     steps:
     - task: DownloadPipelineArtifact@2
-      displayName: Download *.tfplan artifact
+      displayName: Download $(Build.BuildId).tfplan
       inputs:
         artifactName: $(Build.BuildId).tfplan
         patterns: '**/$(Build.BuildId).tfplan'
         path: $(System.DefaultWorkingDirectory)
-  - job: terraform_apply
-    displayName: Terraform Apply
-    steps:
     - script: |
         export ARM_CLIENT_ID=$(client-id) 
         export ARM_CLIENT_SECRET=$(client-secret)
