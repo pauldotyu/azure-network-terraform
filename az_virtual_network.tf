@@ -76,6 +76,6 @@ resource "azurerm_virtual_network_peering" "network" {
   use_remote_gateways          = false
 
   depends_on = [
-    azurerm_virtual_network.vn
+    azurerm_virtual_network.network
   ]
 }
