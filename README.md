@@ -1,8 +1,8 @@
 # azure-network-terraform
 
-The intent of this repo is to build a demo hub virtual network which contains the following resources:
+The intent of this repo is to build a demo hub virtual network for [Hub-spoke network topology in Azure](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=bicep) which consists of the following resources:
 
-- Virtual Network with appropriate Subnets, Network Security Groups, and Virtual Network Peerings
+- Azure Virtual Network with appropriate Subnets, Network Security Groups, and Virtual Network Peerings
 - Azure Firewall and Azure Firewall Policy which uses Azure IP Groups
 - Azure Virtual Network Gateway
 - Azure Bastion
