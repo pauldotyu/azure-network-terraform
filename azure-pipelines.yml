@@ -92,7 +92,7 @@ stages:
       displayName: Terraform init and apply
 - stage: stop_aci
   displayName: Build Cleanup
-  dependsOn: terraform_plan
+  dependsOn: terraform_apply
   pool:
     vmImage: ubuntu-latest
   jobs:
