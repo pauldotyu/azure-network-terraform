@@ -124,6 +124,9 @@ stages:
       name: terraform_destroy
 - stage: stop_aci
   displayName: Build Cleanup
+  dependsOn:
+  - terraform_apply
+  - terraform_destroy
   pool:
     vmImage: ubuntu-latest
   jobs:
