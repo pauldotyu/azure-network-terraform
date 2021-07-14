@@ -96,6 +96,10 @@ stages:
   displayName: Terraform Destroy
   dependsOn: start_aci
   condition: eq(variables.destroy, true)
+  pool:
+    name: Contoso
+    demands: 
+      - agent.name -equals acicontoso
   jobs: 
   - job: manual_validation
     displayName: Approval Gate
