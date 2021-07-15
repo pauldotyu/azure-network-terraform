@@ -48,7 +48,7 @@ resource "azurerm_virtual_network" "network" {
   location            = azurerm_resource_group.network.location
   address_space       = var.vnet_address_prefixes
   dns_servers         = var.aadds_dns_servers
-  tags                = var.tags
+  tags                = merge(var.tags, { "network-role" = "hubcity" })
 
   dynamic "subnet" {
     for_each = var.subnets
