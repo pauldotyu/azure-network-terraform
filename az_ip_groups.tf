@@ -33,3 +33,11 @@ resource "azurerm_ip_group" "devops" {
   cidrs               = var.ipgroup_devops
   tags                = var.tags
 }
+
+resource "azurerm_ip_group" "devopsaci" {
+  name                = "ipg-devopsaci"
+  resource_group_name = azurerm_resource_group.network.name
+  location            = azurerm_resource_group.network.location
+  cidrs               = var.ipgroup_devopsaci
+  tags                = var.tags
+}

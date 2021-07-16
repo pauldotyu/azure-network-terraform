@@ -230,6 +230,30 @@ resource "azurerm_firewall_policy_rule_collection_group" "network" {
       destination_ports = ["*"]
       protocols         = ["Any"]
     }
+
+    rule {
+      name = "devopsaci-to-redcap"
+      source_ip_groups = [
+        azurerm_ip_group.devopsaci.id
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.redcap.id,
+      ]
+      destination_ports = ["*"]
+      protocols         = ["Any"]
+    }
+
+    rule {
+      name = "redcap-to-devopsaci"
+      source_ip_groups = [
+        azurerm_ip_group.redcap.id,
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.devopsaci.id
+      ]
+      destination_ports = ["*"]
+      protocols         = ["Any"]
+    }
   }
 
   depends_on = [

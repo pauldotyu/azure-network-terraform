@@ -64,7 +64,13 @@ variable "ipgroup_redcap" {
 variable "ipgroup_devops" {
   type = list(string)
   default = [
-    "10.21.0.16/28",
+    "10.21.0.16/28"
+  ]
+}
+
+variable "ipgroup_devopsaci" {
+  type = list(string)
+  default = [
     "10.21.0.32/28"
   ]
 }
