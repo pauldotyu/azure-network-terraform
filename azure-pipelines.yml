@@ -8,6 +8,22 @@ trigger:
 
 variables:
 - group: kvdevops1
+- name: RG_NAME
+  value: rg-devops
+- name: ACI_NAME
+  value: acicontoso
+- name: ACI_IMAGE
+  value: contosocr.azurecr.io/azpcontoso:latest
+- name: ACR_LOGIN_SERVER
+  value: contosocr
+- name: VNET_NAME
+  value: vn-devops
+- name: SNET_NAME
+  value: ACISubnet
+- name: AZDO_URL
+  value: https://dev.azure.com/ContosoUniversity/
+- name: AZDO_POOL
+  value: Contoso
 
 stages:
 - stage: start_aci
@@ -19,12 +35,29 @@ stages:
     displayName: Start build agent
     steps:
     - task: AzureCLI@2
-      displayName: Start Azure Container Instance
+      displayName: Create Azure Container Instance
       inputs:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container start -n $(ACINAME) -g $(RGNAME)'
+        inlineScript: |
+          az container create \
+            -g $(RG_NAME) \
+            -n $(ACI_NAME)-$(Build.BuildId) \
+            --image $(ACI_IMAGE) \
+            --registry-login-server $(ACR_LOGIN_SERVER) \
+            --registry-username $(acrdevops1-pull-usr) \
+            --registry-password $(acrdevops1-pull-pwd) \
+            --assign-identity $(az identity show -n $(ACI_NAME) -g $(RG_NAME) --query id -o tsv) \
+            --ip-address Private \
+            --vnet $(VNET_NAME) \
+            --subnet $(SNET_NAME) \
+            --restart-policy never \
+            --cpu 1 \
+            --memory 1 \
+            --os-type Linux \
+            -e AZP_URL=$(AZDO_URL) AZP_AGENT_NAME=$(ACI_NAME) AZP_POOL=$(AZDO_POOL) \
+            --secure-environment-variables AZP_TOKEN=$(devops-pat)
 - stage: terraform_plan
   displayName: Terraform Plan
   dependsOn: start_aci
@@ -144,4 +177,4 @@ stages:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container stop -n $(ACINAME) -g $(RGNAME)'
+        inlineScript: 'az container delete -n $(ACI_NAME)-$(Build.BuildId) -g $(RG_NAME) -y'
