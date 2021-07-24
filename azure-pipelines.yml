@@ -48,8 +48,8 @@ stages:
             -n $(ACI_NAME)-$(Build.BuildId) \
             --image $(ACI_IMAGE) \
             --registry-login-server $(ACR_LOGIN_SERVER) \
-            --registry-username $(acrdevops1-pull-usr) \
-            --registry-password $(acrdevops1-pull-pwd) \
+            --registry-username $(contosocr-pull-usr) \
+            --registry-password $(contosocr-pull-pwd) \
             --assign-identity $(ACI_IDENTITY) \
             --ip-address Private \
             --vnet $(VNET_NAME) \
