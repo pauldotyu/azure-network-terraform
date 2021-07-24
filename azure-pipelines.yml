@@ -58,7 +58,7 @@ stages:
             --cpu 1 \
             --memory 1 \
             --os-type Linux \
-            -e AZP_URL=$(AZDO_URL) AZP_AGENT_NAME=$(ACI_NAME) AZP_POOL=$(AZDO_POOL) \
+            -e AZP_URL=$(AZDO_URL) AZP_AGENT_NAME=$(ACI_NAME)-$(Build.BuildId) AZP_POOL=$(AZDO_POOL) \
             --secure-environment-variables AZP_TOKEN=$(devops-pat)
 - stage: terraform_plan
   displayName: Terraform Plan
