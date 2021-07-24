@@ -7,33 +7,40 @@ trigger:
 - main
 
 variables:
+# Secrets pull from key vault
 - group: kvdevops1
-- name: RG_NAME
-  value: rg-devops
-- name: ACI_NAME
-  value: acicontoso
-- name: ACI_IMAGE
-  value: contosocr.azurecr.io/azpcontoso:latest
-- name: ACI_IDENTITY
-  value: /subscriptions/672f7b3e-5c19-454f-bb04-4843676bf396/resourceGroups/rg-devops/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acicontoso
-- name: ACR_LOGIN_SERVER
-  value: contosocr.azurecr.io
-- name: VNET_NAME
-  value: vn-devops
-- name: SNET_NAME
-  value: ACISubnet
-- name: AZDO_URL
-  value: https://dev.azure.com/ContosoUniversity/
-- name: AZDO_POOL
+# Current organization url
+- name: AZDO-URL
+  value: $(System.TeamFoundationCollectionUri)
+# Needs to be created ahead of time
+- name: AZDO-POOL
   value: Contoso
+# Resource group where ACI will be created
+- name: AZP-RG-NAME
+  value: rg-devops
+# Name of ACI agent
+- name: AZP-AGENT-NAME
+  value: $(System.TeamProject)-$(Build.BuildId) 
+# Virtual network where ACI will be created
+- name: AZP-VNET-NAME
+  value: vn-devops
+# Subnet where ACI will be created - must be delegated to Microsoft.ContainerInstance/containerGroups
+- name: AZP-SNET-NAME
+  value: ACISubnet
+# Container image that will be used for ACI agent 
+- name: ACR-IMAGE
+  value: contosocr.azurecr.io/azpcontoso:latest
+# Container registry - credentials are pulled through key vault
+- name: ACR-SERVER
+  value: contosocr.azurecr.io
 
 stages:
-- stage: start_aci
+- stage: start_agent
   displayName: Build Prep
   pool:
     vmImage: ubuntu-latest
   jobs:
-  - job: start_aci
+  - job: start_agent
     displayName: Create build agent
     steps:
     - task: AzureCLI@2
@@ -44,30 +51,30 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           az container create \
-            -g $(RG_NAME) \
-            -n $(ACI_NAME)-$(Build.BuildId) \
-            --image $(ACI_IMAGE) \
-            --registry-login-server $(ACR_LOGIN_SERVER) \
+            -g $(AZP-RG-NAME) \
+            -n $(AZP-AGENT-NAME) \
+            --image $(ACR-IMAGE) \
+            --registry-login-server $(ACR-SERVER) \
             --registry-username $(contosocr-pull-usr) \
             --registry-password $(contosocr-pull-pwd) \
-            --assign-identity $(ACI_IDENTITY) \
+            --assign-identity $(azp-managed-identity-id) \
             --ip-address Private \
-            --vnet $(VNET_NAME) \
-            --subnet $(SNET_NAME) \
+            --vnet $(AZP-VNET-NAME) \
+            --subnet $(AZP-SNET-NAME) \
             --restart-policy never \
             --cpu 1 \
             --memory 1 \
             --os-type Linux \
-            -e AZP_URL=$(AZDO_URL) AZP_AGENT_NAME=$(ACI_NAME)-$(Build.BuildId) AZP_POOL=$(AZDO_POOL) \
+            -e AZP_URL=$(AZDO-URL) AZP_AGENT_NAME=$(AZP-AGENT-NAME) AZP_POOL=$(AZDO-POOL) \
             --secure-environment-variables AZP_TOKEN=$(devops-pat)
 - stage: terraform_plan
   displayName: Terraform Plan
-  dependsOn: start_aci
+  dependsOn: start_agent
   condition: and(succeeded(), eq(variables.destroy, false))
   pool:
     name: Contoso
     demands:
-      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
+      - agent.name -equals $(AZP-AGENT-NAME)
   jobs:
   - job: terraform_plan
     displayName: Terraform Plan
@@ -96,7 +103,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
+      - agent.name -equals $(AZP-AGENT-NAME)
   jobs:
   - job: manual_validation
     displayName: Approval Gate
@@ -130,12 +137,12 @@ stages:
       displayName: Terraform init and apply
 - stage: terraform_destroy
   displayName: Terraform Destroy
-  dependsOn: start_aci
+  dependsOn: start_agent
   condition: and(succeeded(), eq(variables.destroy, true))
   pool:
     name: Contoso
     demands: 
-      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
+      - agent.name -equals $(AZP-AGENT-NAME)
   jobs: 
   - job: manual_validation
     displayName: Approval Gate
@@ -162,7 +169,7 @@ stages:
         terraform destroy -var="digicert_ssl_validation_key=$(digicert-ssl-validation-key)" -var="vpn_preshared_key=$(vpn-preshared-key)" --auto-approve
       displayName: Terraform init and destroy
       name: terraform_destroy
-- stage: stop_aci
+- stage: stop_agent
   displayName: Build Cleanup
   dependsOn:
   - terraform_apply
@@ -171,7 +178,7 @@ stages:
   pool:
     vmImage: ubuntu-latest
   jobs:
-  - job: stop_aci
+  - job: stop_agent
     displayName: Delete build agent
     steps:
     - task: AzureCLI@2
@@ -180,4 +187,4 @@ stages:
         azureSubscription: 'terraform'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
-        inlineScript: 'az container delete -n $(ACI_NAME)-$(Build.BuildId) -g $(RG_NAME) -y'
+        inlineScript: 'az container delete -n $(AZP-AGENT-NAME) -g $(AZP-RG-NAME) -y'
