@@ -14,8 +14,10 @@ variables:
   value: acicontoso
 - name: ACI_IMAGE
   value: contosocr.azurecr.io/azpcontoso:latest
+- name: ACI_IDENTITY
+  value: /subscriptions/672f7b3e-5c19-454f-bb04-4843676bf396/resourceGroups/rg-devops/providers/Microsoft.ManagedIdentity/userAssignedIdentities/acicontoso
 - name: ACR_LOGIN_SERVER
-  value: contosocr
+  value: contosocr.azurecr.io
 - name: VNET_NAME
   value: vn-devops
 - name: SNET_NAME
@@ -32,7 +34,7 @@ stages:
     vmImage: ubuntu-latest
   jobs:
   - job: start_aci
-    displayName: Start build agent
+    displayName: Create build agent
     steps:
     - task: AzureCLI@2
       displayName: Create Azure Container Instance
@@ -48,7 +50,7 @@ stages:
             --registry-login-server $(ACR_LOGIN_SERVER) \
             --registry-username $(acrdevops1-pull-usr) \
             --registry-password $(acrdevops1-pull-pwd) \
-            --assign-identity $(az identity show -n $(ACI_NAME) -g $(RG_NAME) --query id -o tsv) \
+            --assign-identity $(ACI_IDENTITY) \
             --ip-address Private \
             --vnet $(VNET_NAME) \
             --subnet $(SNET_NAME) \
@@ -61,7 +63,7 @@ stages:
 - stage: terraform_plan
   displayName: Terraform Plan
   dependsOn: start_aci
-  condition: eq(variables.destroy, false)
+  condition: and(succeeded(), eq(variables.destroy, false))
   pool:
     name: Contoso
     demands:
@@ -90,6 +92,7 @@ stages:
 - stage: terraform_apply
   displayName: Terraform Apply
   dependsOn: terraform_plan
+  condition: succeeded()
   pool:
     name: Contoso
     demands:
@@ -128,7 +131,7 @@ stages:
 - stage: terraform_destroy
   displayName: Terraform Destroy
   dependsOn: start_aci
-  condition: eq(variables.destroy, true)
+  condition: and(succeeded(), eq(variables.destroy, true))
   pool:
     name: Contoso
     demands: 
@@ -169,10 +172,10 @@ stages:
     vmImage: ubuntu-latest
   jobs:
   - job: stop_aci
-    displayName: Stop build agent
+    displayName: Delete build agent
     steps:
     - task: AzureCLI@2
-      displayName: Stop Azure Container Instance
+      displayName: Delete Azure Container Instance
       inputs:
         azureSubscription: 'terraform'
         scriptType: 'bash'
