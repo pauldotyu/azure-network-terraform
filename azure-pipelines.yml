@@ -67,7 +67,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals acicontoso
+      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
   jobs:
   - job: terraform_plan
     displayName: Terraform Plan
@@ -96,7 +96,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals acicontoso
+      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
   jobs:
   - job: manual_validation
     displayName: Approval Gate
@@ -135,7 +135,7 @@ stages:
   pool:
     name: Contoso
     demands: 
-      - agent.name -equals acicontoso
+      - agent.name -equals $(ACI_NAME)-$(Build.BuildId)
   jobs: 
   - job: manual_validation
     displayName: Approval Gate
