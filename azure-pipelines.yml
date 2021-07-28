@@ -71,7 +71,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals $(AZP-AGENT-NAME)
+      - agent.name -equals ${{ variables['AZP-AGENT-NAME'] }}
   jobs:
   - job: terraform_plan
     displayName: Terraform Plan
@@ -100,7 +100,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals $(AZP-AGENT-NAME)
+      - agent.name -equals ${{ variables['AZP-AGENT-NAME'] }}
   jobs:
   - job: manual_validation
     displayName: Approval Gate
@@ -139,7 +139,7 @@ stages:
   pool:
     name: Contoso
     demands:
-      - agent.name -equals $(AZP-AGENT-NAME)
+      - agent.name -equals ${{ variables['AZP-AGENT-NAME'] }}
   jobs:
   - job: manual_validation
     displayName: Approval Gate
