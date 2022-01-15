@@ -1,3 +1,8 @@
+variable "subscription_id" {
+  type        = string
+  description = "(optional) describe your variable"
+}
+
 variable "location" {
   type        = string
   description = "Location"
@@ -175,11 +180,11 @@ variable "subnets" {
 }
 
 variable "devops_akv_name" {
-  type = string
+  type    = string
   default = "kvdevops1"
 }
 
 variable "devops_rg_name" {
-  type= string
-  default = "rg-devops"  
+  type    = string
+  default = "rg-devops"
 }
