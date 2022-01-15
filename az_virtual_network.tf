@@ -64,25 +64,12 @@ resource "azurerm_virtual_network" "network" {
 # AZURE VNET PEERINGS
 ####################################
 
-# Get resources by type, create hub vnet peerings
-# Rather than explicity call out the virtual network to peer,
-# This data source will pull a list of virtual network  by querying
-# the network-dependency tag. If the tag is "hubcity" then it will be peered
-# to the virtual network created within this deployment.
-data "azurerm_resources" "vnets" {
-  type = "Microsoft.Network/virtualNetworks"
-
-  required_tags = {
-    network-dependency = "hubcity"
-  }
-}
-
 resource "azurerm_virtual_network_peering" "network" {
-  count                        = length(data.azurerm_resources.vnets.resources)
-  name                         = "${azurerm_virtual_network.network.name}-to-${data.azurerm_resources.vnets.resources[count.index].name}"
-  remote_virtual_network_id    = data.azurerm_resources.vnets.resources[count.index].id
+  for_each                     = { for vp in var.vnet_peerings : vp.peering_name => vp }
+  name                         = each.value["peering_name"]
+  remote_virtual_network_id    = each.value["resource_id"]
   resource_group_name          = azurerm_resource_group.network.name
-  virtual_network_name         = azurerm_virtual_network.network.name
+  virtual_network_name         = azurerm_virtual_network.network.name # update module to include vnet in its ouput
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
   allow_gateway_transit        = true
