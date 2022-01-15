@@ -15,7 +15,7 @@ resource "random_pet" "p" {
 }
 
 locals {
-  name = format("%s%s", "network", random_pet.p.id)
+  name = format("%s%s", "netops", random_pet.p.id)
 }
 
 resource "azurerm_resource_group" "network" {
