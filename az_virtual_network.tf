@@ -5,7 +5,7 @@
 # These are subnets where NSGs should not be applied
 locals {
   non_nsg_subnets = [
-    "AADDSSubnet",
+    "networkSubnet",
     "AzureBastionSubnet",
     "AzureFirewallSubnet",
     "AzureFirewallManagementSubnet",
@@ -14,7 +14,7 @@ locals {
 }
 
 resource "azurerm_network_security_group" "network" {
-  name                = "nsg-${local.name}"
+  name                = "nsg-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   tags                = merge(var.tags, { "network-role" = "hubcity" })
@@ -43,7 +43,7 @@ resource "azurerm_network_security_group" "network" {
 }
 
 resource "azurerm_virtual_network" "network" {
-  name                = "vn-${local.name}"
+  name                = "vn-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   address_space       = var.vnet_address_prefixes
@@ -64,18 +64,27 @@ resource "azurerm_virtual_network" "network" {
 # AZURE VNET PEERINGS
 ####################################
 
+# Get resources by type, create hub vnet peerings
+# Rather than explicity call out the virtual network to peer,
+# This data source will pull a list of virtual network  by querying
+# the network-dependency tag. If the tag is "hubcity" then it will be peered
+# to the virtual network created within this deployment.
+data "azurerm_resources" "vnets" {
+  type = "Microsoft.Network/virtualNetworks"
+
+  required_tags = {
+    network-dependency = "hubcity"
+  }
+}
+
 resource "azurerm_virtual_network_peering" "network" {
-  for_each                     = { for vp in var.vnet_peerings : vp.peering_name => vp }
-  name                         = each.value["peering_name"]
-  remote_virtual_network_id    = each.value["resource_id"]
+  count                        = length(data.azurerm_resources.vnets.resources)
+  name                         = "${azurerm_virtual_network.network.name}-to-${data.azurerm_resources.vnets.resources[count.index].name}"
+  remote_virtual_network_id    = data.azurerm_resources.vnets.resources[count.index].id
   resource_group_name          = azurerm_resource_group.network.name
-  virtual_network_name         = "vn-${local.name}" # update module to include vnet in its ouput
+  virtual_network_name         = azurerm_virtual_network.network.name
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
   allow_gateway_transit        = true
   use_remote_gateways          = false
-
-  depends_on = [
-    azurerm_virtual_network.network
-  ]
 }

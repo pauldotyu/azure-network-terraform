@@ -266,7 +266,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "network" {
 }
 
 resource "azurerm_public_ip" "fw" {
-  name                = "fw-${local.name}-ip"
+  name                = "fw-${local.resource_name}-ip"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   allocation_method   = "Static"
@@ -275,7 +275,7 @@ resource "azurerm_public_ip" "fw" {
 }
 
 resource "azurerm_public_ip" "fw_mgmt" {
-  name                = "fw-mgmt-${local.name}-ip"
+  name                = "fw-mgmt-${local.resource_name}-ip"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   allocation_method   = "Static"
@@ -284,7 +284,7 @@ resource "azurerm_public_ip" "fw_mgmt" {
 }
 
 resource "azurerm_firewall" "network" {
-  name                = "fw-${local.name}"
+  name                = "fw-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   sku_name            = "AZFW_VNet"

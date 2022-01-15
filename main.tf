@@ -15,11 +15,11 @@ resource "random_pet" "p" {
 }
 
 locals {
-  name = format("%s%s", "netops", random_pet.p.id)
+  resource_name = format("%s%s", "netops", random_pet.p.id)
 }
 
 resource "azurerm_resource_group" "network" {
-  name     = "rg-${local.name}"
+  name     = "rg-${local.resource_name}"
   location = var.location
   tags     = var.tags
 }

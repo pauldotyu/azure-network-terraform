@@ -3,7 +3,7 @@
 #####################################
 
 resource "azurerm_public_ip" "bh" {
-  name                = "bh-${local.name}-ip"
+  name                = "bh-${local.resource_name}-ip"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   allocation_method   = "Static"
@@ -12,7 +12,7 @@ resource "azurerm_public_ip" "bh" {
 }
 
 resource "azurerm_bastion_host" "network" {
-  name                = "bh-${local.name}"
+  name                = "bh-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   tags                = var.tags

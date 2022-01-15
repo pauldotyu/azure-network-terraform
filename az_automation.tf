@@ -3,7 +3,7 @@
 # ####################################
 
 # resource "azurerm_automation_account" "network" {
-#   name                = "aa-${local.name}"
+#   name                = "aa-${local.resource_name}"
 #   location            = azurerm_resource_group.network.location
 #   resource_group_name = azurerm_resource_group.network.name
 #   sku_name            = "Basic"
@@ -21,7 +21,7 @@
 # }
 
 # resource "azurerm_automation_certificate" "network" {
-#   name                    = "aa-${local.name}-cert"
+#   name                    = "aa-${local.resource_name}-cert"
 #   resource_group_name     = azurerm_resource_group.network.name
 #   automation_account_name = azurerm_automation_account.network.name
 #   base64                  = data.azurerm_key_vault_certificate.network.certificate_data_base64
@@ -84,9 +84,9 @@
 #   schedule_name           = azurerm_automation_schedule.afw_down.name
 
 #   parameters = {
-#     fwname = "fw-${local.name}"
-#     ipname = "fw-${local.name}-ip"
-#     rgname = "rg-${local.name}"
-#     vnname = "vn-${local.name}"
+#     fwname = "fw-${local.resource_name}"
+#     ipname = "fw-${local.resource_name}-ip"
+#     rgname = "rg-${local.resource_name}"
+#     vnname = "vn-${local.resource_name}"
 #   }
 # }

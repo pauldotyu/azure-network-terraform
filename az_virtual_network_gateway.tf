@@ -3,7 +3,7 @@
 #######################################
 
 resource "azurerm_public_ip" "vng" {
-  name                = "vng-${local.name}-ip"
+  name                = "vng-${local.resource_name}-ip"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   allocation_method   = "Static"
@@ -12,7 +12,7 @@ resource "azurerm_public_ip" "vng" {
 }
 
 resource "azurerm_virtual_network_gateway" "network" {
-  name                = "vng-${local.name}"
+  name                = "vng-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   type                = "Vpn"
@@ -35,7 +35,7 @@ resource "azurerm_virtual_network_gateway" "network" {
 }
 
 resource "azurerm_local_network_gateway" "campus" {
-  name                = "campus-network"
+  name                = "lng-campus"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
   gateway_address     = var.campus_gateway_address
@@ -43,7 +43,7 @@ resource "azurerm_local_network_gateway" "campus" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "campus" {
-  name                               = "campus-connection"
+  name                               = "con-campus"
   location                           = azurerm_resource_group.network.location
   resource_group_name                = azurerm_resource_group.network.name
   type                               = "IPsec"

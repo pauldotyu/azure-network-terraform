@@ -63,14 +63,6 @@ variable "aadds_dns_servers" {
   type = list(string)
 }
 
-variable "vnet_peerings" {
-  type = list(object({
-    peering_name = string
-    resource_id  = string
-  }))
-  description = "List of virtual networks that needs to peer to hub"
-}
-
 variable "vpn_preshared_key" {
   type = string
 }
