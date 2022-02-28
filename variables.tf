@@ -10,7 +10,8 @@ variable "location" {
       "southcentralus",
       "westcentralus",
       "westus",
-      "westus2"
+      "westus2",
+      "westus3"
     ], var.location) >= 0)
     error_message = "The deployment location must be US regions."
   }
@@ -19,7 +20,7 @@ variable "location" {
 variable "tags" {
   description = "Resource tags"
   default = {
-    "environment"        = "prod"
+    "environment"        = "dev"
     "mission"            = "administrative"
     "protection-level"   = "p1"
     "availability-level" = "a1"

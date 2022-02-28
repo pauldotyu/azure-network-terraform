@@ -12,10 +12,16 @@ resource "azurerm_public_ip" "bh" {
 }
 
 resource "azurerm_bastion_host" "network" {
-  name                = "bh-${local.resource_name}"
-  resource_group_name = azurerm_resource_group.network.name
-  location            = azurerm_resource_group.network.location
-  tags                = var.tags
+  name                   = "bh-${local.resource_name}"
+  resource_group_name    = azurerm_resource_group.network.name
+  location               = azurerm_resource_group.network.location
+  sku                    = "Standard"
+  copy_paste_enabled     = true
+  file_copy_enabled      = true
+  ip_connect_enabled     = true
+  shareable_link_enabled = true
+  tunneling_enabled      = true
+  tags                   = var.tags
 
   ip_configuration {
     name                 = "IpConf"
