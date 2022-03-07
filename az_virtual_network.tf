@@ -60,16 +60,49 @@ resource "azurerm_virtual_network" "network" {
   }
 }
 
-####################################
-# AZURE VNET PEERINGS
-####################################
+##########################################
+# VIRTUAL NETWORK PEERING - DEVOPS
+##########################################
 
-resource "azurerm_virtual_network_peering" "network" {
-  for_each                     = { for vp in var.vnet_peerings : vp.peering_name => vp }
-  name                         = each.value["peering_name"]
-  remote_virtual_network_id    = each.value["resource_id"]
+provider "azurerm" {
+  features {}
+  alias           = "devops"
+  subscription_id = var.devops_subscription_id
+}
+
+# Get resources by type, create vnet peerings
+data "azurerm_resources" "devops_vnets" {
+  provider = azurerm.devops
+  type     = "Microsoft.Network/virtualNetworks"
+
+  required_tags = {
+    role = var.devops_role_tag_value
+  }
+}
+
+# this will peer out to all the virtual networks tagged with a role of azops
+resource "azurerm_virtual_network_peering" "devops_vnet_peer_out" {
+  count                        = length(data.azurerm_resources.devops_vnets.resources)
+  name                         = data.azurerm_resources.devops_vnets.resources[count.index].name
+  remote_virtual_network_id    = data.azurerm_resources.devops_vnets.resources[count.index].id
   resource_group_name          = azurerm_resource_group.network.name
-  virtual_network_name         = azurerm_virtual_network.network.name # update module to include vnet in its ouput
+  virtual_network_name         = azurerm_virtual_network.network.name
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = false
+  use_remote_gateways          = false
+}
+
+# this will peer in from all the virtual networks tagged with the role of azops
+# this also needs work. right now it is using variables when it should be using the data resource pulled from above;
+# howver, the challenge is that the data resource does not return the resrouces' resource group which is required for peering
+resource "azurerm_virtual_network_peering" "devops_vnet_peer_in" {
+  provider                     = azurerm.devops
+  count                        = length(data.azurerm_resources.devops_vnets.resources)
+  name                         = azurerm_virtual_network.network.name
+  remote_virtual_network_id    = azurerm_virtual_network.network.id
+  resource_group_name          = split("/", data.azurerm_resources.devops_vnets.resources[count.index].id)[4]
+  virtual_network_name         = data.azurerm_resources.devops_vnets.resources[count.index].name
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
   allow_gateway_transit        = true

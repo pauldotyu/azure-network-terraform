@@ -59,14 +59,6 @@ variable "aadds_dns_servers" {
   type = list(string)
 }
 
-variable "vnet_peerings" {
-  type = list(object({
-    peering_name = string
-    resource_id  = string
-  }))
-  description = "List of virtual networks that needs to peer to hub"
-}
-
 variable "vpn_preshared_key" {
   type = string
 }
@@ -115,5 +107,13 @@ variable "devops_akv_name" {
 }
 
 variable "devops_rg_name" {
+  type = string
+}
+
+variable "devops_subscription_id" {
+  type = string
+}
+
+variable "devops_role_tag_value" {
   type = string
 }
