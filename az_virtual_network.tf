@@ -17,7 +17,7 @@ resource "azurerm_network_security_group" "network" {
   name                = "nsg-${local.resource_name}"
   resource_group_name = azurerm_resource_group.network.name
   location            = azurerm_resource_group.network.location
-  tags                = merge(var.tags, { "network-role" = "hubcity" })
+  tags                = merge(var.tags, { "role" = "azops" })
 
   dynamic "security_rule" {
     for_each = var.nsg_rules
